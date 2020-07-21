@@ -4,7 +4,10 @@
     <div class="con-box">
       <div class="con-nav"></div>
       <div class="chatList">
-        
+        <div class="search">
+          <input class="search-1" type="text" placeholder="请输入搜索内容">
+        </div>
+        <connectCard></connectCard>
       </div>
       <div class="chatRoom">
         <div class="msgs" id='homeIm'>
@@ -26,6 +29,7 @@
 import axios from "axios";
 import {mapState,mapGetters,mapActions,mapMutations} from 'vuex'
 import homeNews from './homeNews'
+import connectCard from './connectCard'
 
 // const arr = [ Field ,Button];
 // arr.map(e => {
@@ -44,7 +48,8 @@ export default {
     msg: String
   },
   components:{
-    homeNews
+    homeNews,
+    connectCard
   },
   created() {
     //this.getChatRecord() //获取聊天记录，要钱
@@ -168,6 +173,24 @@ export default {
   width: 400px;
   height: 100%;
   background: lemonchiffon;
+  overflow-y: auto;
+}
+.search{
+  width: 100%;
+  height: 50px;
+  background: lightgreen;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.search-1{
+  width: 80%;
+  height: 40px;
+  background: #eee;
+  border-radius:20px;
+  text-indent: 10px;
+  border: none;
+  outline: none; 
 }
 .chatRoom{
   flex: 1;
