@@ -45,7 +45,7 @@ import connectCard from './connectCard'
 export default {
   data() {
     return { 
-      say:'qing输入内容'
+      say:''
     };
   },
   name: "homeIm",
@@ -82,10 +82,13 @@ export default {
   },
   methods: {
     send() {
+      if(!this.send){
+        return false;
+      }
       let that = this
       let msg = new RongIMLib.TextMessage({ content: that.say, extra: 'https://img.52z.com/upload/news/image/20171120/20171120080335_21404.jpg' });
       let conversationType = RongIMLib.ConversationType.PRIVATE; // 单聊, 其他会话选择相应的消息类型即可
-      let targetId = '123'
+      let targetId = '111'
       // let targetId = JSON.parse(localStorage.getItem('userInfo')).IMUser.assistantId; // 目标 Id
 
       RongIMClient.getInstance().sendMessage(conversationType, targetId, msg, {
