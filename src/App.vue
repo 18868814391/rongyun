@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <Init/>
+    <Init ref="mainPart"/>
   </div>
 </template>
 
@@ -16,8 +16,9 @@ export default {
   },
 created () { //生命周期函数-可发起求
     let that = this
-    //融云初始化
-    RongIMLib.RongIMClient.init('pvxdm17jpe59r',); //------------------------------重要填写appkey
+    //融云初始化8w7jv4qb78a9y
+    //自己的pvxdm17jpe59r
+    RongIMLib.RongIMClient.init('8w7jv4qb78a9y',); //------------------------------重要填写appkey
     that.beforeIm() //设置监听，必须先设置监听，再连接
     that.nowIm()  //连接融云
   },
@@ -65,7 +66,8 @@ created () { //生命周期函数-可发起求
                       // message.content.content => 文字内容
                       //----------------------------重要-------把获取的消息存放在store中，全局公用homeIm.vue要使用
                       console.log('接受到的文字消息',message,message.content.content)
-                      that.getAnswer(message)
+                      that.$refs.mainPart.gotMsg(message) //全部消息放到组件中处理
+                    //   that.getAnswer(message)
                       break;
                   case RongIMClient.MessageType.VoiceMessage:
                       // message.content.content => 格式为 AMR 的音频 base64
@@ -109,11 +111,14 @@ created () { //生命周期函数-可发起求
       });
     },
     nowIm(){
+        const self=this;
     //自己的token------从接口获取，写到缓存
       // var token = JSON.parse(localStorage.getItem('userInfo')).IMUser.token//"WzrthC5f4UfuiI7dIwCQ5fwtGfqCdobpowIZkcQnj8PQOQuAJb/nIi1ayzGFwJguvbQZxbJH3x0=";
-      RongIMClient.connect('fxUDmbISTfiHRN8GUnK+07Cco6QD5qLup5DQs3UxfLc=@zeph.cn.rongnav.com;zeph.cn.rongcfg.com', {
+      RongIMClient.connect('4FGCL0oQ/E72nU4ivbui8uHR/ySxKaD1cAX2biXsYR6RsLYO9xAA4ooa+q3n42JnVTQyMAdFUiDsjFRDYZaQeg==', {
           onSuccess: function(userId) {
               console.log('Connect successfully. ' + userId);
+              self.$store.state.isConnect=true;
+              console.log('state中的状态',self.$store.state)
           },
           onTokenIncorrect: function() {
               console.log('token 无效');

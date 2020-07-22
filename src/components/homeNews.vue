@@ -4,6 +4,7 @@
       <div class="right" v-if="data.messageType =='TextMessage'&&data.messageDirection=='1'">
          <div class="right-head"></div>
          <div class="right-con">
+           <div class="getName">用户名1</div>
            <div class="content">{{data.content.content}}</div>
            <div class="time">{{time}}</div>
          </div>
@@ -11,6 +12,7 @@
       <div class="left" v-if="data.messageType =='TextMessage'&&data.messageDirection!='1'">
          <div class="right-head"></div>
          <div class="right-con">
+           <div class="getName2">用户名2</div>
            <div class="content">{{data.content.content}}</div>
            <div class="time">{{time}}</div>
          </div>        
@@ -60,12 +62,22 @@ export default {
   max-width:600px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  margin-top:20px;
+  align-items: right;
   margin-right:15px;
-  margin-left:15px;   
+  margin-left:15px;
+  word-break: break-all;
+}
+.getName{
+  width: 100%;
+  text-align: right;; 
+  margin-bottom:5px; 
+}
+.getName2{
+  text-align: left;
+  margin-bottom:5px;   
 }
 .content{
+  display: inline-block;
   padding: 10px;
   border-radius:5px;
   background:  rgb(3, 156, 3);

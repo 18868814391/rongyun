@@ -1,22 +1,40 @@
 <template>
-  <div class="coc">
+  <div class="coc" @click="openChat()">
     <div class="coc-b1">
-      <div class="coc-tnum">12</div>
+      <div class="coc-tnum" v-if="detail.unreadMessageCount*1>0">{{detail.unreadMessageCount}}</div>
     </div>
     <div class="coc-b2">
       <div class="coc-b21">
-        <span class="coc-b21-1">XXXXX汽修</span>
-        <span class="coc-b21-2">23:59</span>
+        <span class="coc-b21-1">会话类型{{detail.conversationType}}</span>
+        <span class="coc-b21-2">{{sendTime}}</span>
       </div>
       <div class="coc-b22">
-        XXXXX汽修:我说了一句话
+        {{`发送者id${detail.latestMessage.senderUserId}说`}}：{{detail.latestMessage.content.content}}
       </div>
     </div>
   </div>
 </template>
 <script>
 export default {
-  
+  data(){
+    return{
+      sendTime:'',
+    }
+  },
+  props:{
+    detail:Object
+  },
+  created(){
+    this.sendTime=this.getLocalTime(this.detail.sentTime)
+  },
+  methods:{
+    getLocalTime(nS) {     
+      return new Date(parseInt(nS) ).toLocaleString().replace(/:\d{1,2}$/,' ');     
+    },
+    openChat(){
+      this.$emit('openChat',this.detail)
+    },
+  },
 }
 </script>
 <style scoped>
@@ -76,6 +94,12 @@ export default {
 .coc-b22{
   width: 100%;
   margin-top:10px; 
+  overflow: hidden;
+  display: -webkit-box;
+  text-overflow: ellipsis;
+  -webkit-line-clamp: 2;  /*要显示的行数*/
+  -webkit-box-orient: vertical;
+  word-break: break-all;
 }
 </style>
 

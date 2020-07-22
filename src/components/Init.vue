@@ -12,10 +12,13 @@
         <div class="search">
           <input class="search-1" type="text" placeholder="请输入搜索内容">
         </div>
-        <connectCard v-for="item in 12"></connectCard>
+        <connectCard v-on:openChat="openChat" v-for="(detail,index) in chatList" :key="index" :detail="detail"></connectCard>
       </div>
       <div class="chatRoom">
-        <div class="msgs" id='homeIm'>
+        <div class="msgs" id='homeIm' @scroll="scrollEvent" ref='chatBox'>
+          <div class="loadHistory">
+            <span class="loadHistory-t" @click="loadHis()">{{haveHis?'加载历史记录':'没有历史记录了'}}</span>
+          </div>
           <homeNews v-for="(item ,index) in answer" :key='index' :item='item' :data='item'></homeNews>
         </div>
         <div class="inpOp">
@@ -45,7 +48,12 @@ import connectCard from './connectCard'
 export default {
   data() {
     return { 
-      say:''
+      chatList:[],//会话列表
+      say:'',
+      nowChat:null,//当前对话框对象
+      targetMan:'',//目前会话框的对象
+      hisObj:[],//历史记录大对象
+      haveHis:true,//该会话是否还有历史记录
     };
   },
   name: "homeIm",
@@ -57,7 +65,13 @@ export default {
     connectCard
   },
   created() {
-    //this.getChatRecord() //获取聊天记录，要钱
+    console.log('组件初始化中是否链接上了',this.$store.state.isConnect)
+    if(this.$store.state.isConnect){
+      this.getChat()
+    }
+    setTimeout(()=>{
+      console.log('一秒之后组件初始化中是否链接上了',this.$store.state.isConnect)
+    },1000)
     this.$nextTick(() => {//------------------------重要-------有消息就滚动到底部-----------------------
         let list = document.getElementById('homeIm')
         document.documentElement.scrollTop = list.scrollHeight
@@ -68,40 +82,76 @@ export default {
     ...mapState({
       answer:"answer",
     }),
-
+    ...mapGetters([
+        'isConnect'
+    ]),    
+    getIsConnect() {
+      return this.$store.state.isConnect;
+    }
   },
   watch: { //------------------------重要-------有消息就滚动到底部-----------------------
     answer() {
-      console.log('hanbeAN')
+      // this.$nextTick(() => {
+      //   let list = document.getElementById('homeIm')
+      //   list.scrollTop = list.scrollHeight
+      //   //如不行，请尝试->  list.scrollTop = list.scrollHeight
+      // })
+    },
+    isConnect(newVal){
+      console.log('组件中监听链接是否成功',newVal)
+      if(newVal){  //全局监听融云连接成功
+        this.getChat()//获取会话列表，要钱
+        // this.getChatRecord() //获取指定会话聊天记录，要钱        
+      }
+    },
+  },
+  methods: {
+    openChat(d){ //点击了会话列表，获取对应会话的历史记录
+      const self=this;
+      if(d.targetId==self.targetMan){
+        return false;//重复点击不会加载聊天记录
+      }
+      self.hisObj.forEach((v,i,a)=>{ //把对应的历史记录塞到对应对象中
+        if(v.targetId==d.targetId){
+            // v.history=v.history.concat(list)
+            if(!v.history[0]){//不存在记录，是初次打开,正常执行
+               self.getchatHistory(d);    
+            }else{
+              self.getchatHistory(d,1);//只切换对话，不加载历史记录
+            }
+        }
+      })      
+      // if(d.targetId!=self.targetMan){
+      //   this.getchatHistory(d);//开始获取该对话的历史记录
+      // }
+    },
+    toBottom(){ //聊天框滚动到底
       this.$nextTick(() => {
         let list = document.getElementById('homeIm')
         list.scrollTop = list.scrollHeight
         //如不行，请尝试->  list.scrollTop = list.scrollHeight
-      })
-    }
-  },
-  methods: {
+      })          
+    },
+    gotMsg(d){  //收到消息啦！！！！
+      this.answer.push(d);
+      this.toBottom();
+    },
     send() {
       if(!this.send){
         return false;
       }
       let that = this
-      let msg = new RongIMLib.TextMessage({ content: that.say, extra: 'https://img.52z.com/upload/news/image/20171120/20171120080335_21404.jpg' });
+      let msg = new RongIMLib.TextMessage({ content: that.say, extra:'' });
       let conversationType = RongIMLib.ConversationType.PRIVATE; // 单聊, 其他会话选择相应的消息类型即可
-      let targetId = '111'
+      let targetId = that.targetMan
       // let targetId = JSON.parse(localStorage.getItem('userInfo')).IMUser.assistantId; // 目标 Id
-
       RongIMClient.getInstance().sendMessage(conversationType, targetId, msg, {
           onSuccess: function (message) {
               // message 为发送的消息对象并且包含服务器返回的消息唯一 Id 和发送消息时间戳
               console.log('Send successfully',message,message.content.content);
-              // let say = {
-              //     type:1,
-              //     css:'right',
-              //     txt:message.content.content,
-              //   }
               that.answer.push(message,message.content.content)
               that.say = ''
+              that.toBottom();
           },
           onError: function (errorCode, message) {
               let info = '';
@@ -129,8 +179,95 @@ export default {
           }
       });
     },
+    getChat(){ //获取会话列表
+      let self=this;
+      let conversationType = RongIMLib.ConversationType.PRIVATE; //单聊, 其他会话选择相应的消息类型即可
+      RongIMClient.getInstance().getConversationList({
+          onSuccess: function(list) {
+              // list => 会话列表集合
+              console.log('会话列表集合',list)
+              self.chatList=list
+              self.chatList.forEach((v,i,a)=>{
+                let ddd={targetId:'',history:[]}
+                ddd.targetId=v.targetId
+                self.hisObj.push(ddd)
+              })
+              console.log('历史记录大对象',self.hisObj)
+          },
+          onError: function(error) {
+             console.log('会话列表获取失败')
+          }
+      }, null);      
+    },
+    scrollEvent (d) {
+      let self= this;
+      // console.log(this.$refs.chatBox.scrollTop)
+      // if(this.$refs.chatBox.scrollTop<=10){ //拉到顶了。加载历史记录
+      //   console.log('我要加载历史记录啦')
+      //   this.getchatHistory(self.nowChat);
+      // }
+    },   
+    loadHis(d){
+      const self=this;
+      this.getchatHistory(self.nowChat);
+    }, 
+    getchatHistory(d,type){ //获取指定对话历史记录
+      const self=this;
+      if(d.targetId!=self.targetMan){ //切换了会话框了，先清空当前信息记录
+        self.$store.state.answer=[]
+        self.haveHis=true
+      }
+      self.nowChat=d;
+      self.targetMan=d.targetId
+      console.log(d)
+      if(type&&type==1){ //不加载记录，只是切换聊天框
+        self.hisObj.forEach((v,i,a)=>{ //把对应的历史记录塞到对应对象中
+          if(v.targetId==d.targetId){
+              self.$store.state.answer=v.history
+          }
+        }) 
+        self.toBottom();           
+        return false
+      }
+        let conversationType=null
+        if(d.conversationType==1){
+          conversationType = RongIMLib.ConversationType.PRIVATE; //单聊, 其他会话选择相应的消息类型即可
+        }else{
+          alert(`消息类型为${d.conversationType}`)
+          return false
+        }
+        let targetId = d.targetId; // 想获取自己和谁的历史消息，targetId 赋值为对方的 Id
+        let timestrap = null; // 默认传 null，若从头开始获取历史消息，请赋值为 0, timestrap = 0;
+        let count = 20; // 每次获取的历史消息条数，范围 0-20 条，可以多次获取
+        RongIMLib.RongIMClient.getInstance().getHistoryMessages(conversationType, targetId, timestrap, count, {
+            onSuccess: function(list, hasMsg) {
+                let flag=false;
+                self.hisObj.forEach((v,i,a)=>{ //把对应的历史记录塞到对应对象中
+                  if(v.targetId==d.targetId){
+                      // v.history=v.history.concat(list)
+                      if(!v.history[0]){//不存在记录，是初次打开，要滚动到底
+                         flag=true     
+                      }
+                      console.log('当前获取到的历史记录',list)
+                      v.history=list.concat(v.history)
+                      self.$store.state.answer=v.history
 
-    getChatRecord(){
+                  }
+                })
+                if(flag){
+                 self.toBottom(); 
+                }
+                console.log('被插入过的历史记录大对象',self.hisObj)
+                // self.$store.state.answer=list
+                console.log('历史纪录',list, hasMsg)
+                self.haveHis=hasMsg
+            },
+            onError: function(error) {
+                console.log('GetHistoryMessages, errorcode:' + error);
+            }
+        });        
+    },
+    getChatRecord(){  //获取指定会话历史
       let conversationType = RongIMLib.ConversationType.PRIVATE; //单聊, 其他会话选择相应的消息类型即可
       let targetId = '2'; // 想获取自己和谁的历史消息，targetId 赋值为对方的 Id
       let timestrap = null; // 默认传 null，若从头开始获取历史消息，请赋值为 0, timestrap = 0;
@@ -269,6 +406,16 @@ export default {
   position: absolute;
   right: 20px;
   bottom:15px;
+}
+.loadHistory{
+  width: 100%;
+  text-align: center;
+  color: #999;
+  font-size: 12px;
+  margin-top:5px; 
+}
+.loadHistory-t{
+  cursor: pointer;
 }
 </style>
 
