@@ -1,13 +1,18 @@
 <template>
   <div class="con" >
-    <div class="con-head"></div>
+    <div class="con-head">
+      <img class="con-head-m" src="../assets/login_icon_logo.png" alt="">
+      <span class="con-head-t">v1.0.0</span>
+    </div>
     <div class="con-box">
-      <div class="con-nav"></div>
+      <div class="con-nav">
+        <div class="con-nav-head"></div>
+      </div>
       <div class="chatList">
         <div class="search">
           <input class="search-1" type="text" placeholder="请输入搜索内容">
         </div>
-        <connectCard></connectCard>
+        <connectCard v-for="item in 12"></connectCard>
       </div>
       <div class="chatRoom">
         <div class="msgs" id='homeIm'>
@@ -15,7 +20,7 @@
         </div>
         <div class="inpOp">
           <div class="inpTool"></div>
-          <textarea  style="resize:none;"  class="inpEnter" v-model="say" placeholder="请输入内容..." />
+          <textarea v-on:keyup.enter="send"  style="resize:none;"  class="inpEnter" v-model="say" placeholder="请输入内容..." />
           <button class="sendBtn"  @click="send" :disabled ='say?false:true'>发送</button>
         </div>
       </div>
@@ -158,6 +163,18 @@ export default {
   width: 100%;
   height: 75px;
   background: rgb(3, 156, 3);
+  padding: 0 50px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+}
+.con-head-m{
+  width: 50px;
+  margin-right:15px; 
+}
+.con-head-t{
+  color: white;
+  font-size: 15px;
 }
 .con-box{
   width: 100%;
@@ -168,10 +185,21 @@ export default {
   width: 100px;
   height: 100%;
   background: rgb(6, 197, 22);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.con-nav-head{
+  width: 65px;
+  height: 65px;
+  background: lavender;
+  border-radius:50%; 
+  margin-top:20px; 
 }
 .chatList{
   width: 400px;
-  height: 100%;
+  height:calc(100vh - 71px);
+  flex-shrink: 0;
   background: lemonchiffon;
   overflow-y: auto;
 }
@@ -182,6 +210,9 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: sticky;
+  top:0px;
+  z-index: 10;
 }
 .search-1{
   width: 80%;
